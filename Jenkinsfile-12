@@ -35,8 +35,8 @@ pipeline {
               -Dsonar.projectName=datastore
              '''
         }
+      }  
     }
-}
     stage("Artifact Store") {
       steps {
         sh '''

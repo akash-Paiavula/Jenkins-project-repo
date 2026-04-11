@@ -6,72 +6,82 @@ pipeline {
   }
 
   environment {
-    DOCKERHUB_CREDENTIALS=credentials("dockerhub")
+    DOCKERHUB_CREDENTIALS = credentials("dockerhub")
   }
 
   stages {
+
     stage("Checkout") {
       steps {
-        checkout scmGit(branches: [[name: 'main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/akash-Paiavula/Jenkins-project-repo.git']])
+        checkout scmGit(
+          branches: [[name: 'main']],
+          userRemoteConfigs: [[url: 'https://github.com/akash-Paiavula/Jenkins-project-repo.git']]
+        )
       }
     }
 
     stage("Maven Build") {
       steps {
-        sh """
-          echo "-------- Building Application --------"
-          mvn clean package
-          echo "------- Application Built Successfully --------"
-        """
-      }
-    }
-    stage("Maven Test") {
-      steps {
-        sh """
-          echo "-------- Executing Testcases --------"
-          mvn test
-          echo "-------- Testcases Execution Complete --------"
-        """
-      }
-    }
-    stage("SonarQube Analysis") {
-            steps {
-                withSonarQubeEnv('SonarQube-Server') {
-                    sh '''
-                        echo "-------- Running SonarQube Analysis --------"
-                        mvn sonar:sonar \
-                          -Dsonar.projectKey=DataStore \
-                          -Dsonar.projectName=DataStore
-                        echo "-------- SonarQube Analysis Complete --------"
-                    '''
-                }
-            }
-        }
-    stage("Quality Gate") {
-            steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-    stage("Artifact Store") {
-      steps {
         sh '''
-          echo "-------- Pushing Artifacts To S3 --------"
-          aws s3 cp ./target/*.jar s3://datastore-artefact-store-jenkins-apps-1/
-          echo "-------- Pushing Artifacts To S3 Completed --------"
-        '''
-      }
-    }
-    stage("Docker Image Build") {
-      steps {
-        sh '''
-          echo "-------- Building Docker Image --------"
-          docker build -t datastore:${params.App_Version} .
-          echo "-------- Image Successfully Built --------"
+        echo "-------- Building Application --------"
+        mvn clean package
+        echo "------- Application Built Successfully --------"
         '''
       }
     }
 
-}
+    stage("Maven Test") {
+      steps {
+        sh '''
+        echo "-------- Executing Testcases --------"
+        mvn test
+        echo "-------- Testcases Execution Complete --------"
+        '''
+      }
+    }
+
+    stage("SonarQube Analysis") {
+      steps {
+        withSonarQubeEnv('SonarQube-Server') {
+          sh '''
+          echo "-------- Running SonarQube Analysis --------"
+          mvn verify sonar:sonar \
+            -Dsonar.projectKey=DataStore \
+            -Dsonar.projectName=DataStore
+          echo "-------- SonarQube Analysis Complete --------"
+          '''
+        }
+      }
+    }
+
+    stage("Quality Gate") {
+      steps {
+        timeout(time: 10, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
+        }
+      }
+    }
+
+    stage("Artifact Store") {
+      steps {
+        sh '''
+        echo "-------- Pushing Artifacts To S3 --------"
+        aws s3 cp target/*.jar \
+        s3://datastore-artefact-store-jenkins-apps-1/
+        echo "-------- Pushing Artifacts To S3 Completed --------"
+        '''
+      }
+    }
+
+    stage("Docker Image Build") {
+      steps {
+        sh '''
+        echo "-------- Building Docker Image --------"
+        docker build -t datastore:${App_Version} .
+        echo "-------- Image Successfully Built --------"
+        '''
+      }
+    }
+
+  }
 }

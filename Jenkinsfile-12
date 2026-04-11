@@ -26,19 +26,17 @@ pipeline {
         """
       }
     }
-    stage("SonarQube Analysis") {
-          steps {
-                withSonarQubeEnv('SonarQube-Server') {
-                    sh '''
-                        echo "-------- Running SonarQube Analysis --------"
-                        mvn sonar:sonar \
-                          -Dsonar.projectKey=DataStore \
-                          -Dsonar.projectName=DataStore
-                        echo "-------- SonarQube Analysis Complete --------"
-                    '''
-                }
-            }
+    stage('SonarQube Analysis') {
+      steps {
+          withSonarQubeEnv('SonarQube-Server') {
+             sh '''
+              mvn clean verify sonar:sonar \
+              -Dsonar.projectKey=datastore \
+              -Dsonar.projectName=datastore
+             '''
         }
+    }
+}
     stage("Artifact Store") {
       steps {
         sh '''

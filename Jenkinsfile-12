@@ -56,11 +56,11 @@ pipeline {
     }
     stage("Docker Image Build") {
       steps {
-        sh """
+        sh '''
           echo "-------- Building Docker Image --------"
           docker build -t datastore:${params.App_Version} .
           echo "-------- Image Successfully Built --------"
-        """
+        '''
       }
     }
 

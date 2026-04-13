@@ -100,12 +100,16 @@ pipeline {
         """
       }
     }
-    stage("Docker Image Tag") {
+    stage("Loggingin & Pushing Docker Image") {
             steps {
                 sh """
-                    echo "-------- Tagging Docker Image --------"
-                    docker tag datastore:${params.App_Version} ruchit27/jenkins-datastore:${params.App_Version}
-                    echo "-------- Tagging Docker Image Completed --------"
+                    echo "-------- Logging To DockerHub --------"
+                    echo "\$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "\$DOCKERHUB_CREDENTIALS_USR" --password-stdin
+                    echo "-------- DockerHub Login Successful --------"
+
+                    echo "-------- Pushing Docker Image To DockerHub --------"
+                    docker push ruchit27/jenkins-datastore:${params.App_Version}
+                    echo "-------- Docker Image Pushed Successfully --------"
                 """
             }
         }

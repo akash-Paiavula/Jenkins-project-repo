@@ -101,27 +101,26 @@ pipeline {
       }
     }
     stage("Loggingin & Pushing Docker Image") {
-            steps {
-                sh """
-                    echo "-------- Logging To DockerHub --------"
-                    echo "\$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "\$DOCKERHUB_CREDENTIALS_USR" --password-stdin
-                    echo "-------- DockerHub Login Successful --------"
+      steps {
+        sh """
+          echo "-------- Logging To DockerHub --------"
+          docker login -u $DOCKERHUB_CREDENTIALS_USR --password $DOCKERHUB_CREDENTIALS_PSW
+          echo "-------- DockerHub Login Successful --------"
 
-                    echo "-------- Pushing Docker Image To DockerHub --------"
-                    docker push ruchit27/jenkins-datastore:${params.App_Version}
-                    echo "-------- Docker Image Pushed Successfully --------"
-                """
-            }
-        }
-        stage("Cleanup") {
-            steps {
-                sh """
-                    echo "-------- Cleaning Up Jenkins Machine --------"
-                    docker image prune -a -f
-                    echo "-------- Clean Up Successful --------"
-                """
-            }
-        }
-
+          echo "-------- Pushing Docker Image To DockerHub --------"
+          docker push 8072388539/datastore:"${App_Version}"
+          echo "-------- Docker Image Pushed Successfully --------"
+        """
+      }
+    }
+    stage("Cleanup") {
+      steps {
+        sh """
+           echo "-------- Cleaning Up Jenkins Machine --------"
+           docker image prune -a -f
+           echo "-------- Clean Up Successful --------"
+        """
+      }
+    }
   }
 }
